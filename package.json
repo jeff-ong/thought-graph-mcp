@@ -3,6 +3,14 @@
   "version": "0.1.0",
   "description": "An MCP server that guides an LLM to decompose complex problems into a graph of reasoning steps, logs the process to Markdown, renders an interactive HTML graph, and lets you pinpoint and regenerate any step.",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jeff-ong/thought-graph-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jeff-ong/thought-graph-mcp/issues"
+  },
+  "homepage": "https://github.com/jeff-ong/thought-graph-mcp#readme",
   "type": "module",
   "bin": {
     "thought-graph-mcp": "dist/index.js"
