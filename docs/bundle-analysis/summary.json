@@ -1,0 +1,90 @@
+{
+  "generatedAt": "2026-06-30T20:16:15.397Z",
+  "measure": "gzip",
+  "totalGzip": 302942,
+  "totalGzipLabel": "295.8 KB",
+  "regions": [
+    {
+      "id": "mcp-server",
+      "label": "mcp-server.js",
+      "minified": 323252,
+      "gzip": 88484,
+      "topPackages": [
+        {
+          "name": "handlebars",
+          "size": 624427,
+          "label": "609.8 KB"
+        },
+        {
+          "name": "zod",
+          "size": 329449,
+          "label": "321.7 KB"
+        },
+        {
+          "name": "@modelcontextprotocol/sdk",
+          "size": 216418,
+          "label": "211.3 KB"
+        },
+        {
+          "name": "ajv",
+          "size": 209673,
+          "label": "204.8 KB"
+        },
+        {
+          "name": "zod-to-json-schema",
+          "size": 45667,
+          "label": "44.6 KB"
+        },
+        {
+          "name": "fast-uri",
+          "size": 30116,
+          "label": "29.4 KB"
+        }
+      ],
+      "sharePct": 29,
+      "minifiedLabel": "315.7 KB",
+      "gzipLabel": "86.4 KB"
+    },
+    {
+      "id": "graph-runtime",
+      "label": "graph-runtime.js",
+      "minified": 740487,
+      "gzip": 214458,
+      "topPackages": [
+        {
+          "name": "cytoscape",
+          "size": 953054,
+          "label": "930.7 KB"
+        },
+        {
+          "name": "html2canvas",
+          "size": 441542,
+          "label": "431.2 KB"
+        },
+        {
+          "name": "lodash",
+          "size": 191417,
+          "label": "186.9 KB"
+        },
+        {
+          "name": "dompurify",
+          "size": 108250,
+          "label": "105.7 KB"
+        },
+        {
+          "name": "dagre",
+          "size": 78963,
+          "label": "77.1 KB"
+        },
+        {
+          "name": "marked",
+          "size": 42042,
+          "label": "41.1 KB"
+        }
+      ],
+      "sharePct": 71,
+      "minifiedLabel": "723.1 KB",
+      "gzipLabel": "209.4 KB"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "name": "thought-graph-mcp",
+  "version": "0.1.0",
+  "description": "An MCP server that guides an LLM to decompose complex problems into a graph of reasoning steps, logs the process to Markdown, renders an interactive HTML graph, and lets you pinpoint and regenerate any step.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": {
+    "thought-graph-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "!dist/dev",
+    "!dist/**/*.map"
+  ],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "llm",
+    "reasoning",
+    "thought-graph",
+    "decomposition"
+  ],
+  "scripts": {
+    "build": "tsc && rm -rf dist/templates && cp -r src/templates dist/templates && rm -rf dist/dev && tsx src/dev/sync-assets.ts && tsx src/dev/build-examples.ts",
+    "watch": "tsc --watch",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build",
+    "dev": "tsc && node dist/index.js",
+    "dev:preview": "THOUGHT_GRAPH_DEV=1 tsx src/dev/preview.ts",
+    "dev:ui": "THOUGHT_GRAPH_DEV=1 tsx src/dev/preview.ts --watch",
+    "analyze:bundle": "node src/dev/analyze-bundle.mjs",
+    "analyze:bundle:png": "node src/dev/capture-bundle-treemap.mjs",
+    "analyze:bundle:all": "npm run analyze:bundle && npm run analyze:bundle:png"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "cytoscape": "^3.30.2",
+    "cytoscape-dagre": "^2.5.0",
+    "cytoscape-node-html-label": "^1.2.2",
+    "dagre": "^0.8.5",
+    "dompurify": "^3.4.11",
+    "handlebars": "^4.7.8",
+    "html2canvas": "^1.4.1",
+    "marked": "^18.0.5",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "css-loader": "^7.1.2",
+    "playwright": "^1.52.0",
+    "style-loader": "^4.0.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.5.0",
+    "webpack": "^5.99.9",
+    "webpack-bundle-analyzer": "^4.10.2",
+    "webpack-cli": "^6.0.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

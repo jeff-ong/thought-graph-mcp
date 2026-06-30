@@ -1,0 +1,6 @@
+# Dev-only artifacts (also excluded from tsc — listed here as a safety net)
+dist/dev/
+dev/
+
+# Not needed for running the MCP server binary
+dist/**/*.map

@@ -1,0 +1,269 @@
+{
+  "id": "26c0cf67-12b0-499b-bfe2-65edc6bb53a9",
+  "title": "Rate Limit Service Design",
+  "problem": "Design a distributed rate limiting service that other backend services can call to decide whether to allow or reject incoming requests. It must handle high throughput, low latency, be horizontally scalable, support flexible rules (per-user, per-API-key, per-endpoint), and degrade gracefully under failure.",
+  "nodes": [
+    {
+      "id": "n1",
+      "title": "Problem",
+      "content": "Design a distributed rate limiting service that other backend services can call to decide whether to allow or reject incoming requests. It must handle high throughput, low latency, be horizontally scalable, support flexible rules (per-user, per-API-key, per-endpoint), and degrade gracefully under failure.",
+      "type": "root",
+      "parents": [],
+      "status": "active",
+      "createdAt": "2026-06-30T03:23:41.363Z"
+    },
+    {
+      "id": "n2",
+      "title": "Algorithm choice",
+      "content": "Which rate-limiting algorithm to use: fixed window, sliding window log, sliding window counter, token bucket, or leaky bucket. This determines accuracy, burst tolerance, and memory cost per key.",
+      "type": "subproblem",
+      "parents": [
+        "n1"
+      ],
+      "status": "active",
+      "createdAt": "2026-06-30T03:23:45.876Z"
+    },
+    {
+      "id": "n3",
+      "title": "State storage & distribution",
+      "content": "Where counter state lives so it is consistent across many service replicas: centralized store (Redis), local in-memory with sync, or sharded/partitioned counters. Drives latency, consistency, and scalability.",
+      "type": "subproblem",
+      "parents": [
+        "n1"
+      ],
+      "status": "active",
+      "createdAt": "2026-06-30T03:23:48.092Z"
+    },
+    {
+      "id": "n4",
+      "title": "API & rule model",
+      "content": "The interface callers use (e.g. check/allow RPC) and how flexible rules are configured and matched: per-user, per-API-key, per-endpoint, tiered quotas, composite keys.",
+      "type": "subproblem",
+      "parents": [
+        "n1"
+      ],
+      "status": "active",
+      "createdAt": "2026-06-30T03:23:50.937Z"
+    },
+    {
+      "id": "n5",
+      "title": "Deployment topology & latency",
+      "content": "How the service is integrated: central service RPC, sidecar/library at the edge, or hybrid (local token allocation with central reconciliation). Governs the latency added to each request.",
+      "type": "subproblem",
+      "parents": [
+        "n1"
+      ],
+      "status": "active",
+      "createdAt": "2026-06-30T03:23:53.276Z"
+    },
+    {
+      "id": "n6",
+      "title": "Failure modes & graceful degradation",
+      "content": "What happens when the store or service is down or slow: fail-open vs fail-closed, timeouts, local fallback, and protecting the store itself from overload (hot keys).",
+      "type": "subproblem",
+      "parents": [
+        "n1"
+      ],
+      "status": "active",
+      "createdAt": "2026-06-30T03:23:54.958Z"
+    },
+    {
+      "id": "n7",
+      "title": "H: Fixed window counter",
+      "content": "Fixed window: one counter per key per time window (e.g. minute). Cheap (single int), trivial to reason about. But allows 2x burst at window boundaries and gives jagged enforcement.",
+      "type": "hypothesis",
+      "parents": [
+        "n2"
+      ],
+      "status": "active",
+      "confidence": 0.4,
+      "createdAt": "2026-06-30T03:24:00.508Z"
+    },
+    {
+      "id": "n8",
+      "title": "H: Sliding window log",
+      "content": "Sliding window log: store timestamp of every request in a sorted set, count those within the window. Exact, no boundary burst. But memory grows with request rate (O(N) per key) and trimming is costly — bad for high throughput / hot keys.",
+      "type": "hypothesis",
+      "parents": [
+        "n2"
+      ],
+      "status": "active",
+      "confidence": 0.3,
+      "createdAt": "2026-06-30T03:24:03.235Z"
+    },
+    {
+      "id": "n9",
+      "title": "H: Token bucket",
+      "content": "Token bucket: per key store {tokens, lastRefill}. Tokens refill at rate r up to capacity b; each request consumes one. Allows controlled bursts up to b, smooths to average r. O(1) memory and compute, lazily computed on read. Natural fit for \"rate + burst\" semantics.",
+      "type": "hypothesis",
+      "parents": [
+        "n2"
+      ],
+      "status": "active",
+      "confidence": 0.7,
+      "createdAt": "2026-06-30T03:24:06.042Z"
+    },
+    {
+      "id": "n10",
+      "title": "H: Sliding window counter",
+      "content": "Sliding window counter: keep current + previous fixed-window counts and interpolate by elapsed fraction. Approximates a true sliding window with O(1) state, smooths the boundary burst problem. Slightly approximate but cheap.",
+      "type": "hypothesis",
+      "parents": [
+        "n2"
+      ],
+      "status": "active",
+      "confidence": 0.6,
+      "createdAt": "2026-06-30T03:24:08.302Z"
+    },
+    {
+      "id": "n11",
+      "title": "Eval: pick token bucket (default) + sliding-window-counter option",
+      "content": "Weighing the four: log is too memory-heavy for hot keys; fixed window has boundary bursts. Token bucket wins for default — O(1) state, explicit burst (capacity) and sustained rate (refill) parameters, lazily evaluated, expressible as a tiny atomic script. Offer sliding-window-counter as an alternate policy when callers want strict \"N per window\" with no burst. Both are O(1) and implementable as a single atomic store operation.",
+      "type": "evaluation",
+      "parents": [
+        "n7",
+        "n8",
+        "n9",
+        "n10"
+      ],
+      "status": "active",
+      "confidence": 0.8,
+      "createdAt": "2026-06-30T03:24:15.856Z"
+    },
+    {
+      "id": "n12",
+      "title": "H: Centralized Redis",
+      "content": "All replicas read/write a shared Redis (cluster). Strong-ish global accuracy, simple mental model. Atomic Lua script does refill+consume in one round trip. Risks: network hop per check (~0.5-2ms), Redis becomes the bottleneck/SPOF, hot keys land on one shard.",
+      "type": "hypothesis",
+      "parents": [
+        "n3"
+      ],
+      "status": "active",
+      "confidence": 0.7,
+      "createdAt": "2026-06-30T03:24:18.972Z"
+    },
+    {
+      "id": "n13",
+      "title": "H: Local in-memory only",
+      "content": "Each replica enforces limits from its own RAM, no shared state. Zero added latency, no SPOF. But the global limit is effectively limit × replica_count unless traffic is perfectly sharded — inaccurate under load balancing across N nodes.",
+      "type": "hypothesis",
+      "parents": [
+        "n3"
+      ],
+      "status": "active",
+      "confidence": 0.35,
+      "createdAt": "2026-06-30T03:24:22.272Z"
+    },
+    {
+      "id": "n14",
+      "title": "H: Local + async global reconciliation",
+      "content": "Each node keeps a local token allotment and periodically syncs counts to a central tier (or gossip), which redistributes the global budget. Fast local decisions, approximate global accuracy, resilient if central tier blips. More complex; brief over/under-admission during sync windows.",
+      "type": "hypothesis",
+      "parents": [
+        "n3"
+      ],
+      "status": "active",
+      "confidence": 0.6,
+      "createdAt": "2026-06-30T03:24:25.272Z"
+    },
+    {
+      "id": "n15",
+      "title": "Evidence: atomic Lua = no race",
+      "content": "Token bucket on Redis is a single Lua script keyed by the rate-limit key: read {tokens,ts}, compute refill = (now-ts)*r capped at b, if tokens>=1 decrement and allow else deny, write back with TTL. Executes atomically server-side in one round trip — eliminates read-modify-write races across replicas and keeps it at one network hop.",
+      "type": "evidence",
+      "parents": [
+        "n9",
+        "n12"
+      ],
+      "status": "active",
+      "confidence": 0.85,
+      "createdAt": "2026-06-30T03:24:32.977Z"
+    },
+    {
+      "id": "n16",
+      "title": "Eval: tiered storage — Redis primary + local for hot keys",
+      "content": "Pure-local is too inaccurate; pure-central adds a hop and concentrates hot keys. Choose centralized Redis (cluster, key-sharded) as the source of truth for correctness, and add the local-allotment pattern (n14) only for extreme hot keys / strict latency paths: a node leases a slice of the budget locally and reconciles. Default path = Redis Lua; hot-key path = local lease. This merges accuracy with scalability.",
+      "type": "evaluation",
+      "parents": [
+        "n12",
+        "n13",
+        "n14",
+        "n4me"
+      ],
+      "status": "active",
+      "confidence": 0.75,
+      "createdAt": "2026-06-30T03:24:36.543Z"
+    },
+    {
+      "id": "n17",
+      "title": "API surface",
+      "content": "gRPC (and HTTP) method ShouldAllow(descriptors[], cost=1) → {allowed, remaining, limit, retryAfter, resetAt}. Descriptors are ordered key-value tuples e.g. [(user_id, 42),(endpoint, /search)]. Batch-friendly so a caller can check multiple limits in one RPC. Response carries headers (X-RateLimit-*) for the caller to forward.",
+      "type": "hypothesis",
+      "parents": [
+        "n4"
+      ],
+      "status": "active",
+      "confidence": 0.8,
+      "createdAt": "2026-06-30T03:24:43.361Z"
+    },
+    {
+      "id": "n18",
+      "title": "Rule model",
+      "content": "Declarative rule config (hot-reloadable, versioned): each rule matches a descriptor pattern and binds {algorithm, rate, burst, window}. Support wildcards and tiers (free/pro/enterprise → different quotas), and \"most-specific match wins\" or \"all-matching-rules AND'd\" (request allowed only if every applicable limit permits). The composite key = hash(matched descriptors) → the storage key.",
+      "type": "hypothesis",
+      "parents": [
+        "n4"
+      ],
+      "status": "active",
+      "confidence": 0.75,
+      "createdAt": "2026-06-30T03:24:47.196Z"
+    },
+    {
+      "id": "n19",
+      "title": "Eval: deployment = library/sidecar + central Redis",
+      "content": "Comparing central-service-RPC vs sidecar-library: a standalone service adds an extra network hop on every request. Prefer a thin client library (or sidecar) embedded in callers that talks directly to the Redis cluster via the Lua script, with a small control-plane service only for rule distribution and metrics. This removes one hop, keeps p99 low, and still centralizes state. Builds on the storage decision (n16).",
+      "type": "evaluation",
+      "parents": [
+        "n5",
+        "n16"
+      ],
+      "status": "active",
+      "confidence": 0.7,
+      "createdAt": "2026-06-30T03:24:51.158Z"
+    },
+    {
+      "id": "n20",
+      "title": "Failure: fail-open + timeouts + hot-key guard",
+      "content": "Degradation policy: tight timeout on the store call (e.g. 5-10ms); on timeout/error, fail-open by default (allow) for availability, but make it per-rule configurable (critical abuse-prevention limits can fail-closed). Each client keeps a local fallback limiter that activates when Redis is unreachable so you don't go fully unprotected. Protect Redis from hot keys via local lease (n16) and request coalescing; use Redis replicas + cluster failover for the store's own HA.",
+      "type": "evaluation",
+      "parents": [
+        "n6",
+        "n16"
+      ],
+      "status": "active",
+      "confidence": 0.8,
+      "createdAt": "2026-06-30T03:24:55.122Z"
+    },
+    {
+      "id": "n21",
+      "title": "Conclusion: integrated architecture",
+      "content": "Synthesis: A thin client library/sidecar calls a Redis Cluster (key-sharded) running an atomic token-bucket Lua script as the default algorithm, with sliding-window-counter as an alternate policy. Rules are declarative, hot-reloaded from a lightweight control plane, matched by descriptor patterns into composite keys; all applicable limits must pass. Hot keys and strict-latency paths use local budget leasing with async reconciliation. Failures are handled with tight timeouts, per-rule fail-open/closed, and a local fallback limiter; Redis HA via replicas + failover. Observability (allow/deny metrics, per-rule dashboards) rounds it out.",
+      "type": "conclusion",
+      "parents": [
+        "n11",
+        "n15",
+        "n16",
+        "n17",
+        "n18",
+        "n19",
+        "n20"
+      ],
+      "status": "active",
+      "confidence": 0.82,
+      "createdAt": "2026-06-30T03:25:03.368Z"
+    }
+  ],
+  "createdAt": "2026-06-30T03:23:41.363Z",
+  "updatedAt": "2026-06-30T03:25:15.887Z",
+  "finalAnswer": "## Rate Limit Service — Design\n\n**Algorithm.** Default to **token bucket** (O(1) state `{tokens, lastRefill}`, explicit `rate` + `burst`, smooth enforcement). Offer **sliding-window-counter** as an alternate policy for strict \"N per window\" with no burst. Reject sliding-window-log (memory grows with traffic) and fixed-window (boundary bursts) for the high-throughput default.\n\n**State storage.** Centralized **Redis Cluster**, key-sharded, as source of truth. The refill+consume runs as a single **atomic Lua script** per key — one round trip, no read-modify-write races across replicas. For extreme hot keys / strict-latency paths, layer in **local budget leasing**: a node leases a slice of the global budget and reconciles asynchronously.\n\n**API.** `ShouldAllow(descriptors[], cost=1) → {allowed, remaining, limit, retryAfter, resetAt}`. Descriptors are ordered tuples, e.g. `[(user_id,42),(endpoint,/search)]`; batchable so multiple limits check in one RPC. Response carries `X-RateLimit-*` headers for the caller to forward.\n\n**Rules.** Declarative, versioned, hot-reloadable config. Each rule matches a descriptor pattern → binds `{algorithm, rate, burst, window}`, supports wildcards and tiers (free/pro/enterprise). A request must pass **every** applicable limit (AND semantics); the composite key = hash of matched descriptors.\n\n**Deployment.** Thin **client library / sidecar** embedded in callers talks directly to Redis via the Lua script — avoids an extra service hop on every request. A lightweight **control plane** handles only rule distribution and metrics aggregation.\n\n**Failure / degradation.** Tight store timeout (~5–10ms); on error **fail-open by default**, per-rule configurable to fail-closed for abuse-prevention limits. A **local fallback limiter** activates when Redis is unreachable so you're never fully unprotected. Redis HA via replicas + cluster failover; hot keys protected by local leasing and request coalescing.\n\n**Observability.** Allow/deny counters, per-rule and per-tenant dashboards, alerting on deny spikes and store latency.\n\nThis balances accuracy (central atomic state), latency (no extra hop, hot-key leasing), scalability (sharded cluster), flexibility (declarative composite rules), and resilience (fail-open + local fallback)."
+}
