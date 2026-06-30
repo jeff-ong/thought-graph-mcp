@@ -1,3 +1,4 @@
+
 # 💭 thought-graph-mcp
 
 If it's hallucinating, make it think. Inspired by a [research paper](https://research.google/blog/thinking-to-recall-how-reasoning-unlocks-parametric-knowledge-in-llms/), this local MCP makes an LLM reason out loud as an explicit, editable **graph of small thinking steps** instead of one opaque answer.
@@ -23,12 +24,13 @@ If it's hallucinating, make it think. Inspired by a [research paper](https://res
 
 Artifacts are written to `THOUGHT_GRAPH_DIR` (default `~/thought-graph-sessions/`), with static graph assets under `assets/` and session files under `sessions/`.
 
+https://github.com/user-attachments/assets/29162024-35ce-4b98-8be2-9745560fe16a
 
 ## Demo
 
 Explore a full **web crawler system design** session — 18 reasoning steps with branching hypotheses, evidence, and a synthesized answer. Click any node to read its reasoning and dependencies.
 
-![Interactive web crawler thought graph](examples/web-crawler-design/web-crawler-design.gif)
+https://github.com/user-attachments/assets/b3341f27-89af-460a-927f-b4f65a39090d
 
 
 ## Get Started
