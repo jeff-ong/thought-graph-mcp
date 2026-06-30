@@ -21,7 +21,7 @@
     "decomposition"
   ],
   "scripts": {
-    "build": "tsc && rm -rf dist/templates && cp -r src/templates dist/templates && rm -rf dist/dev && tsx src/dev/sync-assets.ts && tsx src/dev/build-examples.ts",
+    "build": "tsc && rm -rf dist/templates && cp -r src/templates dist/templates && rm -rf dist/dev && tsx src/dev/sync-assets.ts",
     "watch": "tsc --watch",
     "start": "node dist/index.js",
     "prepublishOnly": "npm run build",

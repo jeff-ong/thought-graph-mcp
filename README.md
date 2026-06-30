@@ -22,13 +22,11 @@ If it's hallucinating, make it think. Inspired by a [research paper](https://res
    supersedes that node, drops in a fresh revision, and tells the model which
    downstream steps to reconsider.
 
-Artifacts are written to `THOUGHT_GRAPH_DIR` (default `~/thought-graph-sessions/`), with static graph assets under `assets/` and session files under `sessions/`.
-
 https://github.com/user-attachments/assets/29162024-35ce-4b98-8be2-9745560fe16a
 
 ## Demo
 
-Explore a full **web crawler system design** session — 18 reasoning steps with branching hypotheses, evidence, and a synthesized answer. Click any node to read its reasoning and dependencies.
+Explore a full **web crawler system design** session
 
 https://github.com/user-attachments/assets/b3341f27-89af-460a-927f-b4f65a39090d
 
@@ -56,7 +54,7 @@ Edit `claude_desktop_config.json`:
 ```
 Session artifacts default to `~/thought-graph-sessions/`. Override with `THOUGHT_GRAPH_DIR` in the server's `env` block if you want a different folder.
 
-Restart Claude Desktop. Enable the server under the 🔌 (MCP) menu — the **tools** (`begin_thinking`, `add_thought`, etc.) become available to the model. Claude Desktop does **not** currently surface MCP prompts as slash commands, so just ask in chat (see [Try it](#try-it)) rather than typing `/decompose`.
+Restart Claude Desktop. Enable the server under the 🔌 (MCP) menu — the **tools** (`begin_thinking`, `add_thought`, etc.) become available to the model.
 
 ### Claude Code
 
@@ -103,11 +101,11 @@ hypotheses, attach evidence, and `finalize_thinking`. Open the generated `.html`
 
 Here are a few examples of using the MCP tool to analyze mission-critical LLM inference.
 
-| Example | Problem | Nodes | Directory | Interactive graph |
-|---------|---------|------:|-----------|-------------------|
-| Web crawler system design + BOTE | Design a crawler for ~1B pages/month — politeness, dedup, refresh — with back-of-the-envelope sizing for storage, bandwidth, QPS, and fleet size | 18 | [examples/web-crawler-design/](examples/web-crawler-design/) | [open `.html`](examples/web-crawler-design/web-crawler-system-design-bote-estimation-b8cf4764.html) |
-| Rate limit service design | Design a distributed rate limiter — high throughput, low latency, flexible per-user/key/endpoint rules, graceful degradation | 21 | [examples/rate-limit-service-design/](examples/rate-limit-service-design/) | [open `.html`](examples/rate-limit-service-design/rate-limit-service-design-26c0cf67.html) |
-| Autocomplete feature design | Design typeahead suggestions — data source, matching/ranking, frontend UX, latency, accessibility | 14 | [examples/autocomplete-feature-design/](examples/autocomplete-feature-design/) | [open `.html`](examples/autocomplete-feature-design/autocomplete-feature-design-a645f6ab.html) |
+| Example | Problem | Nodes | Directory |
+|---------|---------|------:|-----------|
+| Web crawler system design + BOTE | Design a crawler for ~1B pages/month — politeness, dedup, refresh — with back-of-the-envelope sizing for storage, bandwidth, QPS, and fleet size | 18 | [examples/web-crawler-design/](examples/web-crawler-design/) |
+| Rate limit service design | Design a distributed rate limiter — high throughput, low latency, flexible per-user/key/endpoint rules, graceful degradation | 21 | [examples/rate-limit-service-design/](examples/rate-limit-service-design/) |
+| Autocomplete feature design | Design typeahead suggestions — data source, matching/ranking, frontend UX, latency, accessibility | 14 | [examples/autocomplete-feature-design/](examples/autocomplete-feature-design/) |
 
 
 ---
