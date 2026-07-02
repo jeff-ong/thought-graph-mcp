@@ -17,7 +17,7 @@ const templateDir = path.join(
 export interface RenderHtmlOptions {
   /**
    * `inline-packaged` (default): embed static CSS/JS — works in Claude Desktop
-   * in-app browser. `relative`: link to asset paths (examples / GitHub Pages).
+   * in-app browser. `relative`: link to asset paths (e.g. examples/).
    */
   assetDelivery?: AssetDelivery;
   /** Used when assetDelivery is `relative`. */
