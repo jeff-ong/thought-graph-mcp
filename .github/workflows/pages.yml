@@ -1,9 +1,5 @@
 name: Deploy GitHub Pages
 
-# One-time setup (required before this workflow can succeed):
-#   Repo → Settings → Pages → Build and deployment → Source: GitHub Actions
-# Private repos need GitHub Pro/Team/Enterprise for Pages. Free accounts: public repo only.
-
 on:
   push:
     branches: [main]
@@ -27,6 +23,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install and sync example assets
+        run: |
+          npm ci
+          npm run build
+          cp dist/_vendor/* examples/_vendor/
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
